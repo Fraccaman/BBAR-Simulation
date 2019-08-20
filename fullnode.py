@@ -113,8 +113,7 @@ class FullNode:
             return exchange_type, len(self.mempool), len(partner.mempool), -1, -1
 
         if partner.nature != Nature.ALTRUISTIC and exchange_type == Exchange.OPT_TWO:
-            # print("partner not altruistic!")
-            return exchange_type, len(self.mempool), len(partner.mempool), -1, -1
+            return Exchange.ABORT, len(self.mempool), len(partner.mempool), -1, -1
 
         needed, promised = self.select_exchange_txs(exchange_type, needed, promised, exchange_number)
         # print('{} with {}, exchange type {}, needed: {}, promised: {}, exchange_number {}'.format(self.id, partner.id,

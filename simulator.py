@@ -1,6 +1,6 @@
 import random
 from dataclasses import field, dataclass
-from math import ceil
+from math import ceil, floor
 from typing import List, Dict
 
 from analyzer import Analyzer, Behavior
@@ -31,6 +31,7 @@ class Simulator:
 
     def start_simulation(self):
         self._print_starting_sentence()
+        self.analyzer.analyze_connectivity(self.bns)
 
         epoch_number = self.config.get('EPOCHS')
         pow_difficulty = self.config.get('POW_EXPENSIVENESS')
@@ -122,7 +123,9 @@ class Simulator:
         self.r.seed(seed)
 
     def get_txs_set(self):
-        mempool_size = self.config.get('MEMPOOL_TOTAL')
+        mempool_mean = self.config.get('MEMPOOL_TOTAL')
+        mempool_std = self.config.get('MEMPOOL_STD')
+        mempool_size = floor(self.r.normalvariate(mempool_mean, mempool_std))
         return random.sample(self.data, mempool_size)
 
     def get_subscriptions(self, fn_id):
@@ -175,9 +178,10 @@ class Simulator:
               "\n- {} full nodes ({} byzantine, {} rational)"
               "\n- {} global transactions"
               "\n- {} epochs"
-              "\n- {} mempool size"
+              "\n- {} mempool mean size"
               .format(bn_number, node_number, byzantine_number, rational_number, self.glob_unique_txs, epochs,
                       mempool_number))
+        print("Min mempool: {}, Max mempool {}".format(min([len(fn.mempool) for fn in self.fns]), max([len(fn.mempool) for fn in self.fns])))
 
     def add_redeemed_peers(self):
         for bn in self.bns:

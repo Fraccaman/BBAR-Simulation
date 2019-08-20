@@ -6,7 +6,7 @@ from typing import Dict, List, Tuple
 
 from bootstrapnode import BootstrapNode
 from fullnode import FullNode, Exchange
-from plotter import violin_plot, grouped_bar_plot
+from plotter import violin_plot, grouped_bar_plot, heat_map, stacked_bar_plot
 
 
 class Behavior(Enum):
@@ -80,7 +80,7 @@ class Analyzer:
 
         x, y = self.fn_distribution_per_bn_and_epoch()
         grouped_bar_plot(x, y, 'Number of peer per epoch per bootstrap node', 'Peer registered', 'Epoch',
-                         ('BN1', 'BN2', 'BN3', 'BN4'))
+                         ('BN6', 'BN1', 'BN2', 'BN3', 'BN4', 'BN5'))
 
         y, x = self.mempool_per_epoch_size_plot()
         violin_plot(y, x, 'Global view of network mempools', 'Mempool sizes', 'Epoch')
@@ -92,7 +92,7 @@ class Analyzer:
         violin_plot(y, x, 'Number of duplicates per epoch', 'Duplicates number', 'Epoch')
 
         x, y = self.exchange_type_per_epoch()
-        grouped_bar_plot(x, y, 'Trade types per epoch', 'Trade type total', 'Epoch', ('BAL', 'OPT', 'ABORT'))
+        stacked_bar_plot(x, ['BAL', 'OPT', 'ABORT'], y)
 
     # DATA_MANIPULATION
     def mempool_per_epoch_size_plot(self):
@@ -145,3 +145,17 @@ class Analyzer:
                        epoch_trade))))
             data[2].append(len(list(filter(lambda x: x.exchange_type == Exchange.ABORT, epoch_trade))))
         return data, list(range(len(data[0])))
+
+    @staticmethod
+    def analyze_connectivity(bns):
+        data = []
+        for bn in bns:
+            common = []
+            for bn_ in bns:
+                common_peers = len(set(bn.peers).intersection(set(bn_.peers)))
+                common.append(common_peers)
+            data.append(common)
+
+        all_ids = [bn.id for bn in bns]
+
+        heat_map(data, all_ids, all_ids)
